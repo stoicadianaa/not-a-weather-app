@@ -10,7 +10,10 @@ class CityWeather extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery.of(context).size.width;
+    var width = MediaQuery
+        .of(context)
+        .size
+        .width;
 
     return ChangeNotifierProvider(
       create: (context) => CityWeatherBloc(),
@@ -39,7 +42,7 @@ class CityWeather extends StatelessWidget {
                       },
                       style: ButtonStyle(
                         backgroundColor:
-                            MaterialStateProperty.all(Colors.black),
+                        MaterialStateProperty.all(Colors.black),
                       ),
                       child: Text(
                         'Try again',
@@ -119,7 +122,7 @@ class CityWeather extends StatelessWidget {
                         fit: BoxFit.fitWidth,
                         child: Padding(
                           padding:
-                              EdgeInsets.symmetric(horizontal: width * 0.3),
+                          EdgeInsets.symmetric(horizontal: width * 0.3),
                           child: Text(
                             '${bloc.maxTemp}°',
                             style: GoogleFonts.sourceSansPro(fontSize: 400.0),
@@ -127,7 +130,7 @@ class CityWeather extends StatelessWidget {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Container(
                           width: double.infinity,
                           height: 180,
@@ -140,21 +143,21 @@ class CityWeather extends StatelessWidget {
                               Expanded(
                                 child: weatherData(
                                   Icons.waves_outlined,
-                                  bloc.wind.round().toString(),
+                                  '${bloc.wind.round().toString()}km/h',
                                   'Wind',
                                 ),
                               ),
                               Expanded(
                                 child: weatherData(
                                   Icons.water_drop_outlined,
-                                  bloc.humidity.round().toString(),
+                                  '${bloc.humidity.round().toString()}%',
                                   'Humidity',
                                 ),
                               ),
                               Expanded(
                                 child: weatherData(
                                   Icons.remove_red_eye_outlined,
-                                  bloc.precipitations.floor().toString(),
+                                  '${bloc.precipitations.floor().toString()}km',
                                   'Visibility',
                                 ),
                               ),
@@ -169,7 +172,8 @@ class CityWeather extends StatelessWidget {
                         onPressed: () {
                           launchUrl(
                             Uri.parse(
-                              'https://www.weatherapi.com/weather/q/${bloc.city}',
+                              'https://www.weatherapi.com/weather/q/${bloc
+                                  .city}',
                             ),
                           );
                         },
