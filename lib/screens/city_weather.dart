@@ -10,10 +10,7 @@ class CityWeather extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery
-        .of(context)
-        .size
-        .width;
+    var width = MediaQuery.of(context).size.width;
 
     return ChangeNotifierProvider(
       create: (context) => CityWeatherBloc(),
@@ -22,38 +19,40 @@ class CityWeather extends StatelessWidget {
           if (bloc.isError) {
             return Scaffold(
               backgroundColor: AppColors.background,
-              body: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'There was an error while loading the weather data.',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.sourceSansPro(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20.0,
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        bloc.loadLocation();
-                      },
-                      style: ButtonStyle(
-                        backgroundColor:
-                        MaterialStateProperty.all(Colors.black),
-                      ),
-                      child: Text(
-                        'Try again',
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'There was an error while loading the weather data.',
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.sourceSansPro(
-                          color: AppColors.background,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 20.0,
                         ),
                       ),
-                    ),
-                  ],
+                      ElevatedButton(
+                        onPressed: () {
+                          bloc.loadLocation();
+                        },
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all(Colors.black),
+                        ),
+                        child: Text(
+                          'Try again',
+                          style: GoogleFonts.sourceSansPro(
+                            color: AppColors.background,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20.0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -122,7 +121,7 @@ class CityWeather extends StatelessWidget {
                         fit: BoxFit.fitWidth,
                         child: Padding(
                           padding:
-                          EdgeInsets.symmetric(horizontal: width * 0.3),
+                              EdgeInsets.symmetric(horizontal: width * 0.3),
                           child: Text(
                             '${bloc.maxTemp}°',
                             style: GoogleFonts.sourceSansPro(fontSize: 400.0),
@@ -172,8 +171,7 @@ class CityWeather extends StatelessWidget {
                         onPressed: () {
                           launchUrl(
                             Uri.parse(
-                              'https://www.weatherapi.com/weather/q/${bloc
-                                  .city}',
+                              'https://www.weatherapi.com/weather/q/${bloc.city}',
                             ),
                           );
                         },

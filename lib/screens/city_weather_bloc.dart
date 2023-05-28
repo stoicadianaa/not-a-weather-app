@@ -46,6 +46,12 @@ class CityWeatherBloc extends ChangeNotifier {
     }
 
     locationData = await location.getLocation();
+    location.onLocationChanged.listen((LocationData currentLocation) {
+      locationData = currentLocation;
+      isLoadingDone = false;
+      _loadWeather(locationData);
+    });
+
     _loadWeather(locationData);
   }
 
