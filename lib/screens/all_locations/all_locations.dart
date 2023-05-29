@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:not_a_weather_app/assets/app_colors.dart';
-import 'package:not_a_weather_app/screens/all_locations_bloc.dart';
-import 'package:not_a_weather_app/screens/city_weather.dart';
-import 'package:not_a_weather_app/screens/weather_widget.dart';
+import 'package:not_a_weather_app/screens/city_weather/city_weather.dart';
+import 'package:not_a_weather_app/screens/widgets/weather_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:not_a_weather_app/CityWeatherData.dart';
+import 'package:not_a_weather_app/model/city_weather_model.dart';
+import 'package:not_a_weather_app/screens/all_locations/all_locations_bloc.dart';
+import 'package:not_a_weather_app/screens/widgets/error_screen.dart';
+
+import 'package:not_a_weather_app/screens/widgets/loading_screen.dart';
 
 class AllLocations extends StatelessWidget {
   const AllLocations({Key? key}) : super(key: key);
@@ -21,54 +24,14 @@ class AllLocations extends StatelessWidget {
           if (bloc.isError) {
             return Scaffold(
               backgroundColor: AppColors.background,
-              body: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'There was an error while loading the weather data.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.sourceSansPro(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20.0,
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          bloc.loadCurrentLocation();
-                        },
-                        style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all(Colors.black),
-                        ),
-                        child: Text(
-                          'Try again',
-                          style: GoogleFonts.sourceSansPro(
-                            color: AppColors.background,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20.0,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              body: ErrorScreen(
+                onError: () => bloc.loadScreen(),
               ),
             );
           } else if (!bloc.isLoadingDone) {
             return const Scaffold(
               backgroundColor: AppColors.background,
-              body: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: CircularProgressIndicator(
-                    color: Colors.black,
-                  ),
-                ),
-              ),
+              body: LoadingScreen(),
             );
           } else {
             return Scaffold(
@@ -98,9 +61,7 @@ class AllLocations extends StatelessWidget {
                 ],
               ),
               body: RefreshIndicator(
-                onRefresh: () async {
-                  await bloc.loadScreen();
-                },
+                onRefresh: () async => bloc.loadScreen(),
                 child: SizedBox(
                   height: MediaQuery.of(context).size.height -
                       MediaQuery.of(context).padding.top,
@@ -114,7 +75,8 @@ class AllLocations extends StatelessWidget {
                             controller: searchController,
                             onChanged: (value) => {},
                             onSubmitted: (value) async {
-                              var citydata = await bloc.loadWeatherByCity(value);
+                              var citydata =
+                                  await bloc.loadWeatherByCity(value);
 
                               if (citydata == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -139,8 +101,10 @@ class AllLocations extends StatelessWidget {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(20.0),
                               ),
+                              fillColor: Colors.black,
                               labelText: 'Search cities',
                             ),
+                            cursorColor: Colors.black,
                           ),
                         ),
                       ),
@@ -169,50 +133,63 @@ class AllLocations extends StatelessWidget {
                                     ),
                                   );
                                 },
+                                padding: const EdgeInsets.all(0.0),
                                 child: WeatherWidget(
                                   city: bloc.currentCity!.city,
                                   maxTemp: bloc.currentCity!.maxTemp,
                                   condition: bloc.currentCity!.condition,
                                 ),
                               ),
-                              Text(
-                                'Saved locations',
-                                style: GoogleFonts.sourceSansPro(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 24.0,
-                                ),
-                              ),
-                              SizedBox(
-                                height: bloc.cityWeatherData.length * 200,
-                                child: ListView.separated(
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemBuilder: (context, index) {
-                                    CityWeatherData favoritedCity =
-                                        bloc.cityWeatherData.elementAt(index);
-                                    return MaterialButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                CityWeather(favoritedCity),
-                                          ),
-                                        );
-                                      },
-                                      child: WeatherWidget(
-                                        city: favoritedCity.city,
-                                        maxTemp: favoritedCity.maxTemp,
-                                        condition: favoritedCity.condition,
+                              Visibility(
+                                visible: bloc.cityWeatherData.isNotEmpty,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Saved locations',
+                                      style: GoogleFonts.sourceSansPro(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 24.0,
                                       ),
-                                    );
-                                  },
-                                  separatorBuilder: (context, index) {
-                                    return const SizedBox(
-                                      height: 16.0,
-                                    );
-                                  },
-                                  itemCount: bloc.cityWeatherData.length,
+                                    ),
+                                    SizedBox(
+                                      height: bloc.cityWeatherData.length *
+                                          (16 + 180),
+                                      child: ListView.builder(
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemBuilder: (context, index) {
+                                          CityWeatherModel favoritedCity = bloc
+                                              .cityWeatherData.entries
+                                              .elementAt(index)
+                                              .value;
+                                          return MaterialButton(
+                                            padding: const EdgeInsets.all(0.0),
+
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      CityWeather(
+                                                    favoritedCity,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: WeatherWidget(
+                                              city: favoritedCity.city,
+                                              maxTemp: favoritedCity.maxTemp,
+                                              condition:
+                                                  favoritedCity.condition,
+                                            ),
+                                          );
+                                        },
+                                        itemCount: bloc.cityWeatherData.length,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               )
                             ],

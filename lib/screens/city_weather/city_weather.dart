@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:not_a_weather_app/CityWeatherData.dart';
+import 'package:not_a_weather_app/model/city_weather_model.dart';
 import 'package:not_a_weather_app/assets/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'city_weather_bloc.dart';
+import 'package:not_a_weather_app/screens/city_weather/city_weather_bloc.dart';
 
 class CityWeather extends StatelessWidget {
-  CityWeatherData cityData;
+  const CityWeather(this._cityData, {super.key});
+
+  final CityWeatherModel _cityData;
 
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery.of(context).size.width;
+    double width = MediaQuery.of(context).size.width;
 
     return ChangeNotifierProvider(
-      create: (context) => CityWeatherBloc(cityData.city),
+      create: (context) => CityWeatherBloc(_cityData.city),
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
           title: Text(
-            cityData.city,
+            _cityData.city,
             style: GoogleFonts.sourceSansPro(
               color: Colors.black,
               fontWeight: FontWeight.bold,
@@ -39,19 +40,21 @@ class CityWeather extends StatelessWidget {
             ),
           ),
           actions: [
-            Consumer<CityWeatherBloc>(builder: (context, bloc, child) {
-              return IconButton(
-                onPressed: () {
-                  bloc.toggleFavorite();
-                },
-                icon: Icon(
-                  bloc.isFavorite
-                      ? Icons.favorite
-                      : Icons.favorite_border_outlined,
-                  color: Colors.black,
-                ),
-              );
-            })
+            Consumer<CityWeatherBloc>(
+              builder: (context, bloc, child) {
+                return IconButton(
+                  onPressed: () {
+                    bloc.toggleFavorite();
+                  },
+                  icon: Icon(
+                    bloc.isFavorite
+                        ? Icons.favorite
+                        : Icons.favorite_border_outlined,
+                    color: Colors.black,
+                  ),
+                );
+              },
+            )
           ],
           elevation: 0,
         ),
@@ -85,7 +88,7 @@ class CityWeather extends StatelessWidget {
                   height: 16,
                 ),
                 Text(
-                  cityData.condition,
+                  _cityData.condition,
                   style: const TextStyle(fontSize: 20.0),
                 ),
                 FittedBox(
@@ -93,7 +96,7 @@ class CityWeather extends StatelessWidget {
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: width * 0.3),
                     child: Text(
-                      '${cityData.maxTemp}°',
+                      '${_cityData.maxTemp}°',
                       style: GoogleFonts.sourceSansPro(fontSize: 400.0),
                     ),
                   ),
@@ -112,21 +115,21 @@ class CityWeather extends StatelessWidget {
                         Expanded(
                           child: weatherData(
                             Icons.waves_outlined,
-                            '${cityData.wind.round().toString()}km/h',
+                            '${_cityData.wind.round().toString()}km/h',
                             'Wind',
                           ),
                         ),
                         Expanded(
                           child: weatherData(
                             Icons.water_drop_outlined,
-                            '${cityData.humidity.round().toString()}%',
+                            '${_cityData.humidity.round().toString()}%',
                             'Humidity',
                           ),
                         ),
                         Expanded(
                           child: weatherData(
                             Icons.remove_red_eye_outlined,
-                            '${cityData.precipitations.floor().toString()}km',
+                            '${_cityData.precipitations.floor().toString()}km',
                             'Visibility',
                           ),
                         ),
@@ -141,7 +144,7 @@ class CityWeather extends StatelessWidget {
                   onPressed: () {
                     launchUrl(
                       Uri.parse(
-                        'https://www.weatherapi.com/weather/q/${cityData.city}',
+                        'https://www.weatherapi.com/weather/q/${_cityData.city}',
                       ),
                     );
                   },
@@ -170,8 +173,6 @@ class CityWeather extends StatelessWidget {
       ),
     );
   }
-
-  CityWeather(this.cityData);
 }
 
 Widget weatherData(IconData iconData, String data, String info) {

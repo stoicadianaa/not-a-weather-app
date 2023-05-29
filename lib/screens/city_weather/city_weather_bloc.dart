@@ -2,30 +2,30 @@ import 'package:flutter/cupertino.dart';
 import 'package:localstore/localstore.dart';
 
 class CityWeatherBloc extends ChangeNotifier {
-  bool isFavorite = false;
-  final db = Localstore.instance;
-  String cityName = '';
-
   CityWeatherBloc(String city) {
-    cityName = city;
+    _cityName = city;
     loadScreen();
     notifyListeners();
   }
 
+  bool isFavorite = false;
+  final CollectionRef _favoriteCities =
+      Localstore.instance.collection('favorites');
+  String _cityName = '';
+
   toggleFavorite() async {
     if (!isFavorite) {
-      await db.collection("favorites").doc(cityName).set({"city": cityName});
+      await _favoriteCities.doc(_cityName).set({'city': _cityName});
     } else {
-      await db.collection("favorites").doc(capitalize(cityName)).delete();
+      await _favoriteCities.doc(capitalize(_cityName)).delete();
     }
     isFavorite = !isFavorite;
     notifyListeners();
   }
 
   loadScreen() async {
-    await db.collection("favorites").doc(capitalize(cityName)).get().then((value) {
+    await _favoriteCities.doc(capitalize(_cityName)).get().then((value) {
       if (value != null) {
-        print("in favorites");
         isFavorite = true;
         notifyListeners();
       }

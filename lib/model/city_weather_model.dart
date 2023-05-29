@@ -1,5 +1,5 @@
-class CityWeatherData {
-  CityWeatherData({
+class CityWeatherModel {
+  CityWeatherModel({
     required this.city,
     required this.maxTemp,
     required this.condition,
