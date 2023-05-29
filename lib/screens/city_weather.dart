@@ -5,6 +5,8 @@ import 'package:not_a_weather_app/assets/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'city_weather_bloc.dart';
+
 class CityWeather extends StatelessWidget {
   CityWeatherData cityData;
 
@@ -12,130 +14,157 @@ class CityWeather extends StatelessWidget {
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          cityData.city,
-          style: GoogleFonts.sourceSansPro(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 30.0,
-          ),
-        ),
-        // centerTitle: true,
+    return ChangeNotifierProvider(
+      create: (context) => CityWeatherBloc(cityData.city),
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32.0),
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(
-                height: 16,
-              ),
-              Container(
-                height: 30,
-                width: width * 0.6,
-                decoration: BoxDecoration(
+        appBar: AppBar(
+          title: Text(
+            cityData.city,
+            style: GoogleFonts.sourceSansPro(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 30.0,
+            ),
+          ),
+          centerTitle: true,
+          backgroundColor: AppColors.background,
+          leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: const Icon(
+              Icons.arrow_back_outlined,
+              color: Colors.black,
+            ),
+          ),
+          actions: [
+            Consumer<CityWeatherBloc>(builder: (context, bloc, child) {
+              return IconButton(
+                onPressed: () {
+                  bloc.toggleFavorite();
+                },
+                icon: Icon(
+                  bloc.isFavorite
+                      ? Icons.favorite
+                      : Icons.favorite_border_outlined,
                   color: Colors.black,
-                  borderRadius: BorderRadius.circular(24),
                 ),
-                child: Text(
-                  "Yesterday's weather",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.sourceSansPro(
-                    fontSize: 20.0,
-                    color: AppColors.background,
-                  ),
+              );
+            })
+          ],
+          elevation: 0,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  height: 16,
                 ),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Text(
-                cityData.condition,
-                style: const TextStyle(fontSize: 20.0),
-              ),
-              FittedBox(
-                fit: BoxFit.fitWidth,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: width * 0.3),
-                  child: Text(
-                    '${cityData.maxTemp}°',
-                    style: GoogleFonts.sourceSansPro(fontSize: 400.0),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Container(
-                  width: double.infinity,
-                  height: 180,
+                Container(
+                  height: 30,
+                  width: width * 0.6,
                   decoration: BoxDecoration(
                     color: Colors.black,
                     borderRadius: BorderRadius.circular(24),
                   ),
+                  child: Text(
+                    "Yesterday's weather",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.sourceSansPro(
+                      fontSize: 20.0,
+                      color: AppColors.background,
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Text(
+                  cityData.condition,
+                  style: const TextStyle(fontSize: 20.0),
+                ),
+                FittedBox(
+                  fit: BoxFit.fitWidth,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: width * 0.3),
+                    child: Text(
+                      '${cityData.maxTemp}°',
+                      style: GoogleFonts.sourceSansPro(fontSize: 400.0),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Container(
+                    width: double.infinity,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: weatherData(
+                            Icons.waves_outlined,
+                            '${cityData.wind.round().toString()}km/h',
+                            'Wind',
+                          ),
+                        ),
+                        Expanded(
+                          child: weatherData(
+                            Icons.water_drop_outlined,
+                            '${cityData.humidity.round().toString()}%',
+                            'Humidity',
+                          ),
+                        ),
+                        Expanded(
+                          child: weatherData(
+                            Icons.remove_red_eye_outlined,
+                            '${cityData.precipitations.floor().toString()}km',
+                            'Visibility',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 8.0,
+                ),
+                MaterialButton(
+                  onPressed: () {
+                    launchUrl(
+                      Uri.parse(
+                        'https://www.weatherapi.com/weather/q/${cityData.city}',
+                      ),
+                    );
+                  },
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: weatherData(
-                          Icons.waves_outlined,
-                          '${cityData.wind.round().toString()}km/h',
-                          'Wind',
+                      Text(
+                        'open today\'s weather',
+                        style: GoogleFonts.sourceSansPro(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24.0,
                         ),
                       ),
-                      Expanded(
-                        child: weatherData(
-                          Icons.water_drop_outlined,
-                          '${cityData.humidity.round().toString()}%',
-                          'Humidity',
-                        ),
-                      ),
-                      Expanded(
-                        child: weatherData(
-                          Icons.remove_red_eye_outlined,
-                          '${cityData.precipitations.floor().toString()}km',
-                          'Visibility',
-                        ),
+                      const Icon(
+                        Icons.arrow_forward_outlined,
+                        size: 32.0,
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 8.0,
-              ),
-              MaterialButton(
-                onPressed: () {
-                  launchUrl(
-                    Uri.parse(
-                      'https://www.weatherapi.com/weather/q/${cityData.city}',
-                    ),
-                  );
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'open today\'s weather',
-                      style: GoogleFonts.sourceSansPro(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24.0,
-                      ),
-                    ),
-                    const Icon(
-                      Icons.arrow_forward_outlined,
-                      size: 32.0,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

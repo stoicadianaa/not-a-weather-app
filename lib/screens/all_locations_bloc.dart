@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:localstore/localstore.dart';
 import 'package:location/location.dart';
@@ -17,38 +16,9 @@ class AllLocationsBloc extends ChangeNotifier {
   late LocationData locationData;
   final String _apiKey = 'da3dfef509c14bfdb3395425232605';
   final db = Localstore.instance;
-  List<CityWeatherData> cityWeatherData = [
-    CityWeatherData(
-      maxTemp: 0,
-      condition: 'Clear',
-      city: 'London',
-      latitude: 51.5085,
-      longitude: -0.1257,
-      wind: 0,
-      humidity: 0,
-      precipitations: 0,
-    ),
-    CityWeatherData(
-      maxTemp: 0,
-      condition: 'Clear',
-      city: 'Paris',
-      latitude: 48.8534,
-      longitude: 2.3488,
-      wind: 0,
-      humidity: 0,
-      precipitations: 0,
-    ),
-    CityWeatherData(
-      maxTemp: 0,
-      condition: 'Clear',
-      city: 'New York',
-      latitude: 40.7128,
-      longitude: -74.006,
-      wind: 0,
-      humidity: 0,
-      precipitations: 0,
-    ),
-  ];
+  bool showSearchBar = false;
+
+  List<CityWeatherData> cityWeatherData = [];
   CityWeatherData? currentCity;
 
   loadCurrentLocation() async {
@@ -86,23 +56,20 @@ class AllLocationsBloc extends ChangeNotifier {
     if (currentCity == null) {
       isError = true;
     }
-
-    // location.onLocationChanged.listen((LocationData currentLocation) {
-    //   locationData = currentLocation;
-    //   notifyListeners();
-    // });
   }
 
   loadScreen() async {
-    db.collection("favorites").doc('Bucharest').set({
-      'latitude': 51.5085,
-      'longitude': -0.1257,
-    });
+    isLoadingDone = false;
     await loadCurrentLocation();
+    // db.collection('favorites').delete();
+    cityWeatherData.clear();
     db.collection('favorites').stream.forEach((element) async {
-      print(element);
-      CityWeatherData? newCity =
-          await _loadWeather(element["latitude"], element["longitude"]);
+      CityWeatherData? newCity;
+      if (element["latitude"] != null && element["longitude"] != null) {
+        newCity = await _loadWeather(element["latitude"], element["longitude"]);
+      } else if (element["city"] != null) {
+        newCity = await loadWeatherByCity(element["city"]);
+      }
       if (newCity != null) {
         cityWeatherData.add(newCity);
         notifyListeners();
@@ -156,5 +123,70 @@ class AllLocationsBloc extends ChangeNotifier {
     isLoadingDone = true;
     notifyListeners();
     return null;
+  }
+
+  Future<CityWeatherData?> loadWeatherByCity(String cityName) async {
+    String yesterdayDate = DateTime.now()
+        .subtract(const Duration(days: 1))
+        .toString()
+        .split(' ')[0];
+
+    try {
+      var response = await http.get(
+        Uri.parse(
+          'http://api.weatherapi.com/v1/history.json?key=$_apiKey&q=${cityName.toUpperCase()}&dt=$yesterdayDate',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        var data = json.decode(response.body);
+        var weatherData = data['forecast']['forecastday'][0]['day'];
+        var maxTemp = weatherData['maxtemp_c'].round();
+        var condition = weatherData['condition']['text'];
+        var wind = weatherData['maxwind_kph'];
+        var humidity = weatherData['avghumidity'];
+        var precipitations = weatherData['totalprecip_mm'];
+        var latitude = data['location']['lat'];
+        var longitude = data['location']['lon'];
+
+        return CityWeatherData(
+          maxTemp: maxTemp,
+          condition: condition,
+          city: capitalize(cityName),
+          latitude: latitude,
+          longitude: longitude,
+          wind: wind,
+          humidity: humidity,
+          precipitations: precipitations,
+        );
+      } else {
+        print('Request failed with status: ${response.statusCode}.');
+      }
+    } on Exception {
+      isError = true;
+    }
+
+    isLoadingDone = true;
+    notifyListeners();
+    return null;
+  }
+
+  toggleSearchBar() {
+    showSearchBar = !showSearchBar;
+    notifyListeners();
+  }
+
+  String capitalize(String input) {
+    List<String> words = input.split(' ');
+    List<String> capitalizedWords = [];
+
+    for (String word in words) {
+      if (word.isNotEmpty) {
+        String capitalizedWord = '${word[0].toUpperCase()}${word.substring(1)}';
+        capitalizedWords.add(capitalizedWord);
+      }
+    }
+
+    return capitalizedWords.join(' ');
   }
 }
