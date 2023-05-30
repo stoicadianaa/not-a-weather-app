@@ -62,145 +62,141 @@ class AllLocations extends StatelessWidget {
               ),
               body: RefreshIndicator(
                 onRefresh: () async => bloc.loadScreen(),
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height -
-                      MediaQuery.of(context).padding.top,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Visibility(
-                          visible: bloc.showSearchBar,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextField(
-                              controller: searchController,
-                              onChanged: (value) => {},
-                              onSubmitted: (value) async {
-                                var citydata =
-                                    await bloc.loadWeatherByCity(value);
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Visibility(
+                        visible: bloc.showSearchBar,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextField(
+                            controller: searchController,
+                            onChanged: (value) => {},
+                            onSubmitted: (value) async {
+                              var citydata =
+                                  await bloc.loadWeatherByCity(value);
 
-                                if (citydata == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Couldn't find the city you were looking for.",
-                                      ),
-                                      duration: Duration(seconds: 3),
+                              if (citydata == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Couldn't find the city you were looking for.",
                                     ),
-                                  );
-                                  return;
-                                }
-
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => CityWeather(citydata),
+                                    duration: Duration(seconds: 3),
                                   ),
                                 );
-                              },
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
+                                return;
+                              }
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CityWeather(citydata),
                                 ),
-                                fillColor: Colors.black,
-                                labelText: 'Search cities',
+                              );
+                            },
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20.0),
                               ),
-                              cursorColor: Colors.black,
+                              fillColor: Colors.black,
+                              labelText: 'Search cities',
                             ),
+                            cursorColor: Colors.black,
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Your location',
-                                  style: GoogleFonts.sourceSansPro(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 24.0,
-                                  ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Your location',
+                                style: GoogleFonts.sourceSansPro(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24.0,
                                 ),
-                                MaterialButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            CityWeather(bloc.currentCity!),
-                                      ),
-                                    );
-                                  },
-                                  padding: const EdgeInsets.all(0.0),
-                                  child: WeatherWidget(
-                                    city: bloc.currentCity!.city,
-                                    maxTemp: bloc.currentCity!.maxTemp,
-                                    condition: bloc.currentCity!.condition,
-                                  ),
+                              ),
+                              MaterialButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          CityWeather(bloc.currentCity!),
+                                    ),
+                                  );
+                                },
+                                padding: const EdgeInsets.all(0.0),
+                                child: WeatherWidget(
+                                  city: bloc.currentCity!.city,
+                                  maxTemp: bloc.currentCity!.maxTemp,
+                                  condition: bloc.currentCity!.condition,
                                 ),
-                                Visibility(
-                                  visible: bloc.cityWeatherData.isNotEmpty,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Saved locations',
-                                        style: GoogleFonts.sourceSansPro(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 24.0,
-                                        ),
+                              ),
+                              Visibility(
+                                visible: bloc.cityWeatherData.isNotEmpty,
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Saved locations',
+                                      style: GoogleFonts.sourceSansPro(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 24.0,
                                       ),
-                                      SizedBox(
-                                        height: bloc.cityWeatherData.length *
-                                            (16 + 180),
-                                        child: ListView.builder(
-                                          physics:
-                                              const NeverScrollableScrollPhysics(),
-                                          itemBuilder: (context, index) {
-                                            CityWeatherModel favoritedCity =
-                                                bloc.cityWeatherData.entries
-                                                    .elementAt(index)
-                                                    .value;
-                                            return MaterialButton(
-                                              padding:
-                                                  const EdgeInsets.all(0.0),
-                                              onPressed: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        CityWeather(
-                                                      favoritedCity,
-                                                    ),
+                                    ),
+                                    SizedBox(
+                                      height: bloc.cityWeatherData.length *
+                                          (16 + 180),
+                                      child: ListView.builder(
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemBuilder: (context, index) {
+                                          CityWeatherModel favoritedCity =
+                                              bloc.cityWeatherData.entries
+                                                  .elementAt(index)
+                                                  .value;
+                                          return MaterialButton(
+                                            padding:
+                                                const EdgeInsets.all(0.0),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      CityWeather(
+                                                    favoritedCity,
                                                   ),
-                                                );
-                                              },
-                                              child: WeatherWidget(
-                                                city: favoritedCity.city,
-                                                maxTemp: favoritedCity.maxTemp,
-                                                condition:
-                                                    favoritedCity.condition,
-                                              ),
-                                            );
-                                          },
-                                          itemCount:
-                                              bloc.cityWeatherData.length,
-                                        ),
+                                                ),
+                                              );
+                                            },
+                                            child: WeatherWidget(
+                                              city: favoritedCity.city,
+                                              maxTemp: favoritedCity.maxTemp,
+                                              condition:
+                                                  favoritedCity.condition,
+                                            ),
+                                          );
+                                        },
+                                        itemCount:
+                                            bloc.cityWeatherData.length,
                                       ),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
                           ),
-                        )
-                      ],
-                    ),
+                        ),
+                      )
+                    ],
                   ),
                 ),
               ),
